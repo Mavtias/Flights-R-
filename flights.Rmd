@@ -93,6 +93,7 @@ precios_q5 <- round(runif(len5, min = 100, max = 470),2)
 precios_q6 <- round(runif(len6, min = 250, max = 800),2)
 
 
+
 good <- good %>% 
     mutate(precio = case_when(
     air_time_quartile == 1  ~ sample(precios_q1, n(), replace = TRUE),
