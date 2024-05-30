@@ -1,0 +1,244 @@
+library(tidyverse)
+library(lubridate)
+library(nycflights13)
+library(stringr)
+
+# separando en vuelos cancelados y no cancelados
+
+cancelled_flights <-   flights %>% 
+  filter(is.na(arr_time))
+
+good <- flights %>% 
+  filter(!is.na(arr_time))
+  
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+
+#separando columnas "sched_arr_time",  "dep_time" y las otras 
+
+good <- good %>% 
+  mutate(
+          dep_hour = floor(dep_time / 100),
+          dep_min = dep_time %% 100,
+          arr_hour = floor(arr_time / 100),
+          arr_min = arr_time %% 100,
+          sched_arr_hour = floor(sched_arr_time / 100),
+          sched_arr_min = sched_arr_time %% 100
+)
+
+
+# Uniendo columnas para tener una variable datetime 
+good <- good %>% 
+  mutate(
+          sched_dep_date = ymd_hm(paste(year, month, day, hour, minute, sep = "-")),
+          real_dep_date = ymd_hm(paste(year, month, day, dep_hour, dep_min, sep = "-")),
+          sched_arr_date = ymd_hm(paste(year, month, day, sched_arr_hour, sched_arr_min, sep = "-")),
+          real_arr_date = ymd_hm(paste(year, month, day, arr_hour, arr_min, sep = "-")))
+  
+
+
+# Eliminando columnas que no usare
+
+good <- good %>% 
+  select(sched_dep_date, 
+         dep_delay, 
+         real_dep_date, 
+         sched_arr_date, 
+         arr_delay, 
+         real_arr_date, 
+         carrier, 
+         flight, 
+         tailnum, 
+         origin, 
+         dest,             
+         air_time, distance)
+
+
+
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+
+#weando con los quartiles para crear precios
+#creando 6 categorias dependiendo del air_time
+good <- good %>% 
+  mutate(air_time_quartile = ntile(air_time, 6))
+
+view(head(good))  
+
+
+get_len <- function(df, col, cuartil){
+    col <- enquo(col)
+    len <- df %>% 
+              filter(!!col == as.integer(cuartil)) %>% 
+              nrow()
+return(len)
+}
+
+
+len1 <- get_len(good, air_time_quartile, 1)
+len2 <- get_len(good, air_time_quartile, 2)
+len3 <- get_len(good, air_time_quartile, 3)
+len4 <- get_len(good, air_time_quartile, 4)
+len5 <- get_len(good, air_time_quartile, 5)
+len6 <- get_len(good, air_time_quartile, 6)
+
+
+set.seed(123)
+
+precios_q1 <- round(runif(len1, min = 10, max= 30),2)
+precios_q2 <- round(runif(len2, min = 40, max = 70),2)
+precios_q3 <- round(runif(len3, min = 60, max = 100),2)
+precios_q4 <- round(runif(len4, min = 130, max = 340),2)
+precios_q5 <- round(runif(len5, min = 100, max = 470),2)
+precios_q6 <- round(runif(len6, min = 250, max = 800),2)
+
+
+good <- good %>% 
+    mutate(precio = case_when(
+    air_time_quartile == 1  ~ sample(precios_q1, n(), replace = TRUE),
+    air_time_quartile == 2  ~ sample(precios_q2, n(), replace = TRUE),
+    air_time_quartile == 3  ~ sample(precios_q3, n(), replace = TRUE),
+    air_time_quartile == 4  ~ sample(precios_q4, n(), replace = TRUE),
+    air_time_quartile == 5  ~ sample(precios_q5, n(), replace = TRUE),
+    air_time_quartile == 6  ~ sample(precios_q6, n(), replace = TRUE),
+))
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+
+#Ejercicios de String Manipulation
+#Extraer el código del aeropuerto de origen y destino y concatenarlos en una nueva columna route.
+view(head(good %>% 
+  mutate(concate = paste(origin, dest, sep = "-"))))
+
+
+
+
+
+
+#Convertir todos los valores de la columna carrier a mayúsculas.
+
+
+view(head(good %>% 
+  mutate(carrier = toupper(carrier))))
+
+
+
+
+
+#Crear una nueva columna flight_info que concatene carrier, flight y tailnum separados por guiones.
+
+view(head(good %>% 
+  mutate(flight_info = paste(carrier, "-", flight, "-", tailnum))))
+
+
+
+
+#Obtener la longitud de cada valor en la columna tailnum y almacenarla en una nueva columna tailnum_length.
+
+view(head(good %>% 
+  mutate(tailnum_lenght = nchar(tailnum))))
+
+
+
+#Reemplazar todos los guiones en la columna tailnum con espacios.
+
+flights$tailnum
+#no hay ningun guion
+
+
+
+
+#Crear una columna month_name que contenga el nombre del mes a partir de sched_dep_date.
+
+
+view(head(good %>% 
+  mutate(month_name = month(sched_dep_date, label = TRUE))))
+
+
+
+
+#Separar sched_dep_date en tres columnas nuevas: sched_dep_year, sched_dep_month y sched_dep_day.
+
+
+view(head(good %>% 
+    mutate(sched_dep_year = year(sched_dep_date),
+           sched_dep_month = month(sched_dep_date),
+           sched_dep_day = day(sched_dep_date))))
+
+
+
+
+
+#Crear una columna is_delayed que contenga "Yes" si arr_delay es mayor a 0, de lo contrario "No".
+
+view(head(good %>% 
+  mutate(is_delayed = if_else(arr_delay > 0, "Yes", "No"))))
+
+
+
+
+
+
+#Extraer los primeros tres caracteres de la columna tailnum y guardarlos en una nueva columna tailnum_prefix.
+
+view(head(good %>% 
+    mutate(tailnum_prefix = str_sub(tailnum, 1, 3))))
+    
+
+#Combinar origin y dest en una nueva columna journey con el formato "origin-dest".
+
+view(head(good %>% 
+    mutate(journey = paste(origin, "-", dest))))
+
+
+
+
+
+
+
+#Ejercicios para map y map2
+#Usar map para convertir todas las columnas de caracteres a minúsculas.
+
+view(head(good %>% 
+  mutate(across(where(is.character), ~ map_chr(.x , tolower)))))
+
+
+
+
+#Usar map para calcular la longitud de los valores en cada columna de caracteres.
+
+good %>% 
+  mutate(across(where(is.character), ~ map_int(.x, nchar)))
+  
+  
+  
+
+#Usar map para aplicar una función que reste 10 minutos a todos los valores de dep_delay y arr_delay.
+
+good %>% 
+  mutate(across(c("dep_delay", "arr_delay"),  ~ map_dbl(., ~ . -10)))
+
+
+
+
+
+#Usar map2 para concatenar origin y dest en una nueva columna route en el dataframe good.
+
+
+view(head(good %>% 
+  mutate(route = map2_chr(origin, dest, ~ paste(.x, .y, sep= "-")))))
+
+
+
+
+
+#Usar map2 para sumar los valores de dep_delay y arr_delay y almacenarlos en una nueva columna total_delay.
+
+
+view(head(good %>% 
+  mutate(total_delay = map2_dbl(dep_delay, arr_delay, ~ sum(.x, .y)))))
+
+
+
