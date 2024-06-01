@@ -1,0 +1,257 @@
+library(tidyverse)
+
+#----------------------------------------------------
+#----------------------------------------------------
+
+#MTCARS
+
+df <- mtcars
+
+#Calcula el resumen estadístico de las variables del dataset mtcars.
+
+summary(df)
+
+#Calcula la media, mediana y desviación estándar del consumo de combustible (mpg) por tipo de transmisión (am).
+
+df %>% 
+  group_by(am) %>% 
+  summarise(media = mean(mpg, na.rm = TRUE),
+            mediana = median(mpg, na.rm = TRUE),
+            desviacion = sd(mpg, na.rm = TRUE))
+
+
+
+#Verifica si hay valores faltantes en el dataset mtcars.
+
+df %>%    
+  summarise_all(~sum(is.na(.)))
+
+
+#Crea una copia del dataset mtcars y remueve las columnas vs y am.
+
+df_1 <- df %>% 
+  select(-vs, -am)
+
+
+
+#Agrega una columna que convierta mpg a km/L (1 mpg = 0.425144 km/L).
+
+
+df_1 <- df_1 %>% 
+  mutate("km/l" = mpg / 0.425144)
+
+df_1
+
+#Filtra el dataset para incluir solo los autos con más de 6 cilindros.
+
+
+df_1 %>% 
+  filter(cyl > 6)
+  
+  
+  
+#Crea un histograma del consumo de combustible (mpg).
+
+ggplot(df_1, aes(mpg)) + 
+geom_histogram( bins = 15)
+
+
+
+#Crea un gráfico de dispersión de mpg vs hp (horsepower) coloreado por el número de cilindros.  
+
+
+
+#----------------------------------------------------
+#----------------------------------------------------
+
+
+# IRIS 
+
+df <- iris
+
+#Calcula el resumen estadístico de las variables del dataset iris.
+
+summary(df)
+
+view(head(df))
+
+
+#Calcula la media de las longitudes de los sépalos (Sepal.Length) para cada especie.
+
+df %>% 
+  group_by(Species) %>% 
+  summarise(media = mean(Sepal.Length, na.rm = TRUE))
+
+
+#Verifica si hay valores faltantes en el dataset iris.
+
+df %>% 
+  summarise_all(~sum(is.na(.)))
+
+
+
+
+#Crea una copia del dataset iris y convierte las especies a factores.
+
+df_1 <- df %>% 
+  mutate(Species = as_factor(Species))
+
+typeof(df_1$Species)
+class(df_1$Species)
+
+#Crea una nueva columna con la relación entre la longitud y el ancho del sépalo (Sepal.Length/Sepal.Width).
+
+df_1 <- df_1 %>% 
+  mutate(relacion = Sepal.Length / Sepal.Width)
+
+df_1
+
+
+#Filtra el dataset para incluir solo las observaciones con longitud del sépalo mayor a 5 cm.
+
+
+df_1 %>% 
+  filter(Sepal.Length > 5)
+  
+  
+
+
+#Crea un boxplot de la longitud del sépalo (Sepal.Length) por especie.
+
+ggplot(df_1, aes(Sepal.Length, Species)) + 
+  geom_boxplot() +
+  coord_flip()
+
+
+
+
+#Crea un gráfico de dispersión de Sepal.Length vs Sepal.Width coloreado por especie.
+
+ggplot(df_1, aes(Sepal.Length, Sepal.Width, color = Species))+
+geom_point()
+
+
+
+#----------------------------------------------------
+#----------------------------------------------------
+
+
+#Diamonds
+
+df <- diamonds
+
+#Calcula el resumen estadístico de las variables del dataset diamonds.
+
+summary(df)
+
+
+
+#Calcula la media y mediana del precio (price) para cada corte (cut).
+
+df %>% 
+  group_by(cut) %>% 
+  summarise(media = mean(price, na.rm = TRUE),
+            mediana = median(price, na.rm = TRUE))
+
+
+#Verifica si hay valores faltantes en el dataset diamonds.
+
+df %>% 
+  summarise_all(~sum(is.na(.)))
+
+
+
+#Crea una copia del dataset diamonds y remueve las filas con precios superiores a 15000.
+
+df_1 <- df %>% 
+  filter(price < 15000)
+
+
+#Agrega una columna que convierta el precio (price) a miles de dólares.
+df_1 <- df_1 %>% 
+  mutate(miles_dolares = price / 1000)
+
+
+
+
+#Filtra el dataset para incluir solo los diamantes con corte de tipo "Premium" y "Ideal".
+
+df_1 <- df_1 %>% 
+  filter(cut == "Premium" | cut == "Ideal")
+
+
+
+#Crea un histograma del precio (price) de los diamantes.
+
+ggplot(df, aes(price))+
+  geom_histogram(bins = 20)
+
+#Crea un gráfico de dispersión de carat vs price coloreado por el tipo de corte (cut).
+
+
+ggplot(df, aes(carat, price, color = cut)) + 
+geom_point()
+
+
+
+#----------------------------------------------------
+#----------------------------------------------------
+
+
+#mpg
+
+df <- mpg
+
+#Calcula el resumen estadístico de las variables del dataset mpg.
+
+summary(mpg)
+
+#Calcula el consumo de combustible medio en ciudad (cty) y en carretera (hwy) para cada fabricante.
+colnames(df)
+
+df
+
+df %>% 
+  group_by(manufacturer) %>% 
+  summarise(consumo_medio_city = mean(cty, na.rm = TRUE),
+            consumo_medio_hwy = mean(hwy, na.rm = TRUE))
+
+#Verifica si hay valores faltantes en el dataset mpg.
+
+df %>% 
+  summarise_all(~sum(is.na(.)))
+
+
+
+#Crea una copia del dataset mpg y remueve las filas con displ (desplazamiento) mayor a 6.
+df_1 <- df %>% 
+  filter(displ < 7)
+
+
+
+#Agrega una columna que muestre la relación entre el consumo en ciudad y en carretera (cty/hwy).
+
+df %>% 
+  mutate(relation = cty/hwy)
+
+
+
+#Filtra el dataset para incluir solo los autos con transmisión manual (trans contiene "manual").
+
+df %>% 
+  filter(str_detect(trans, "manual"))
+
+
+
+#Crea un histograma del consumo en ciudad (cty).
+
+ggplot(df, aes(cty))+
+geom_histogram(bins=15)
+
+
+
+#Crea un gráfico de dispersión de displ vs hwy coloreado por el tipo de tracción (drv).
+
+
+ggplot(df, aes(displ, hwy, color=drv))+
+geom_point()
