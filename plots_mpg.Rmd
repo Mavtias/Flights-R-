@@ -1,0 +1,131 @@
+---
+title: "plotsrmd"
+output: html_document
+date: "2024-06-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggmosaic)
+```
+
+## Plotting using "MPG" dataset
+
+- Gráfico de dispersión: Crea un gráfico de dispersión que muestre la relación entre displ (desplazamiento del motor) y hwy (millas por galón en carretera).
+
+
+```{r, echo = FALSE}
+ggplot(mpg, aes(displ, hwy)) +
+geom_point() +
+labs(x = "Engine Displacement in litres",
+     y = "Miles per galon in Highway",
+     title = "Dispersion between Displ and HWY")
+```
+
+
+
+- Boxplot: Crea un boxplot que compare la eficiencia de combustible en carretera (hwy) entre diferentes clases de autos (class).
+
+
+```{r, echo = FALSE}
+ggplot(mpg, aes(reorder(class, hwy, median), hwy)) +
+    geom_boxplot() +
+    coord_flip() +
+    labs(x = "Miles per galon in Highway",
+            y = "Class of Car",
+            title = "Efficiency between HWY and Classes of cars")
+```
+
+
+
+
+- Histograma: Realiza un histograma de la variable cty (millas por galón en ciudad).
+
+
+```{r, echo = FALSE}
+ggplot(mpg, aes(cty, fill = class)) +
+geom_histogram(bins=20)
+```
+
+
+
+
+
+- Gráfico de barras: Crea un gráfico de barras que muestre la cantidad de autos para cada tipo de transmisión (trans).
+
+
+```{r, echo = FALSE}
+ggplot(mpg, aes(trans, fill = class)) +
+geom_bar() +
+coord_flip()
+
+mpg %>% 
+  group_by(trans) %>% 
+  summarise(count = n())
+```
+
+
+- Facetas: Realiza un gráfico de dispersión de displ vs hwy con facetas por el tipo de tracción (drv).
+
+
+```{r, echo = FALSE}
+ggplot(mpg, aes(displ, hwy)) +
+geom_point() +
+facet_wrap(~drv)
+```
+
+
+- Densidad: Crea un gráfico de densidad de hwy separado por el tipo de tracción (drv).
+
+
+```{r, echo = FALSE}
+ggplot(mpg, aes(x = hwy,fill = drv)) +
+geom_density(alpha = 0.5) +
+labs(title = "Density of Highway MPG by Drive Type",
+     x = "Highway MPG",
+     fill = "Drive Type")
+```
+
+
+
+
+- Gráfico de línea: Crea un gráfico de línea que muestre cómo hwy varía con displ para cada fabricante (manufacturer).
+
+
+```{r, echo = FALSE}
+ggplot(mpg, aes(hwy, displ)) +
+geom_line() +
+facet_wrap(~manufacturer)
+
+```
+
+
+
+- Gráfico de puntos con tamaños: Realiza un gráfico de dispersión de displ vs hwy, donde el tamaño de los puntos esté determinado por cyl (número de cilindros).
+
+
+```{r, echo = FALSE}
+ggplot(mpg, aes(displ, hwy, size = cyl)) +
+geom_point()
+```
+
+
+- Gráfico de mosaico: Crea un gráfico de mosaico para explorar la relación entre drv y class.
+
+
+```{r, echo = FALSE}
+ggplot(mpg) +
+  geom_mosaic(aes(x = product(drv), fill = class)) +
+  labs(title = "Mosaic plot of drive type and car class",
+       x = "Drive Type",
+       y = "Count",
+       fill = "Car Class")
+```
+- Gráfico de violín: Realiza un gráfico de violín para comparar la distribución de hwy entre diferentes fabricantes (manufacturer).
+
+
+```{r, echo = FALSE}
+ggplot(mpg, aes(hwy, manufacturer)) +
+geom_violin() 
+```
